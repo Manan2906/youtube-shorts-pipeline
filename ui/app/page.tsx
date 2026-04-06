@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 
-const API = "http://localhost:8000";
+const API = "http://localhost:8003";
 
 const NICHES = [
   "finance", "tech", "gaming", "science", "education", "fitness",

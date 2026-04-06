@@ -103,8 +103,15 @@ Output JSON exactly:
 {{
   "script": "...",
   "broll_prompts": ["prompt 1", "prompt 2", "prompt 3", "prompt 4", "prompt 5", "prompt 6", "prompt 7"],
-  "pexels_search_terms": ["search 1", "search 2", "search 3", "search 4", "search 5", "search 6", "search 7"],
-  "giphy_search_terms": ["giphy 1", "giphy 2", "giphy 3", "giphy 4", "giphy 5", "giphy 6", "giphy 7"],
+  "visual_plan": [
+    {{"source": "giphy|pexels|either", "query": "2-3 word search", "why": "brief reason"}},
+    {{"source": "giphy|pexels|either", "query": "2-3 word search", "why": "brief reason"}},
+    {{"source": "giphy|pexels|either", "query": "2-3 word search", "why": "brief reason"}},
+    {{"source": "giphy|pexels|either", "query": "2-3 word search", "why": "brief reason"}},
+    {{"source": "giphy|pexels|either", "query": "2-3 word search", "why": "brief reason"}},
+    {{"source": "giphy|pexels|either", "query": "2-3 word search", "why": "brief reason"}},
+    {{"source": "giphy|pexels|either", "query": "2-3 word search", "why": "brief reason"}}
+  ],
   "youtube_title": "...",
   "youtube_description": "...",
   "youtube_tags": "tag1,tag2,tag3",
@@ -113,20 +120,35 @@ Output JSON exactly:
   "thumbnail_prompt": "..."
 }}
 
-CRITICAL rules for search terms:
+CRITICAL — visual_plan rules (YOU MUST GET THIS RIGHT):
 
-pexels_search_terms (stock footage — landscapes, objects, abstract):
-- 2-3 words for stock footage. Examples: "oil tanker ocean", "stock market trading"
-- Good for: scenery, objects, buildings, nature, abstract concepts
+Each of the 7 entries tells the system WHAT visual to show for that ~8-10 seconds of the script.
+Pick the RIGHT source for each one:
 
-giphy_search_terms (memes, GIFs, people, reactions — THIS IS PRIMARY):
-- 2-3 words optimized for Giphy meme/GIF search
-- MUST include actual names of people, events, or meme references when the topic involves them
-- Examples: "trump handshake", "putin stare", "mind blown meme", "stock market crash meme", "modi speech"
-- For each segment, think: "what meme or reaction GIF matches what's being said RIGHT NOW?"
-- Use specific person names, pop culture references, and reaction words
+"giphy" — USE WHEN the script talks about:
+  - Specific people (politicians, celebrities, CEOs): "trump speech", "putin stare", "elon musk reaction"
+  - Emotions/reactions that need a meme: "mind blown", "shocked face", "awkward moment"
+  - Humor, sarcasm, drama: "this is fine meme", "spongebob mocking"
+  - Pop culture references
 
-Both lists MUST have exactly 7 entries, each DIFFERENT, each matching what's being spoken in that part of the script."""
+"pexels" — USE WHEN the script talks about:
+  - Landscapes, scenery, places: "oil tanker ocean", "mumbai skyline night"
+  - Objects, machines, processes: "stock market trading screen", "crude oil pipeline"
+  - Abstract concepts shown as footage: "currency exchange", "military parade"
+  - B-roll that should feel cinematic/professional
+
+"either" — USE WHEN both could work. System will try giphy first, pexels as backup.
+
+Example visual_plan for "Trump vs Putin" topic:
+  [{{"source":"giphy","query":"trump putin handshake","why":"showing the two leaders together"}},
+   {{"source":"pexels","query":"white house exterior","why":"establishing shot, no people needed"}},
+   {{"source":"giphy","query":"trump speaking rally","why":"talking about Trump's statements"}},
+   {{"source":"pexels","query":"ukraine war destruction","why":"footage of the conflict zone"}},
+   {{"source":"giphy","query":"putin serious stare","why":"talking about Putin's strategy"}},
+   {{"source":"pexels","query":"NATO headquarters flags","why":"institutional/scenic shot"}},
+   {{"source":"giphy","query":"mind blown politics","why":"closing with a reaction meme"}}]
+
+MUST have exactly 7 entries. Each query should be 2-3 words, DIFFERENT from others, matching what's being spoken."""
 
     raw = call_llm(prompt, provider=provider)
 
@@ -173,6 +195,20 @@ Both lists MUST have exactly 7 entries, each DIFFERENT, each matching what's bei
             draft["giphy_search_terms"] = []
         else:
             draft["giphy_search_terms"] = [str(t) for t in draft["giphy_search_terms"]]
+    # Validate visual_plan (new smart routing format)
+    if "visual_plan" in draft:
+        if not isinstance(draft["visual_plan"], list):
+            draft["visual_plan"] = []
+        else:
+            cleaned = []
+            for entry in draft["visual_plan"]:
+                if isinstance(entry, dict) and "query" in entry:
+                    cleaned.append({
+                        "source": entry.get("source", "either"),
+                        "query": str(entry.get("query", "")),
+                        "why": str(entry.get("why", "")),
+                    })
+            draft["visual_plan"] = cleaned
 
     # Append visual prompt suffix to b-roll prompts
     suffix = get_visual_prompt_suffix(profile)

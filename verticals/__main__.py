@@ -88,6 +88,7 @@ def cmd_produce(args):
             work_dir,
             search_terms=draft.get("pexels_search_terms"),
             giphy_terms=draft.get("giphy_search_terms"),
+            visual_plan=draft.get("visual_plan"),
         )
         state.complete_stage("broll", {"frames": [str(f) for f in frames]})
     else:

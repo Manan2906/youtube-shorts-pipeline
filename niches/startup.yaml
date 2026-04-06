@@ -1,0 +1,83 @@
+name: startup
+display_name: "Startups & Founders"
+description: "For founders and entrepreneurs. Bold, real-talk content on building, scaling, and surviving."
+
+script:
+  tone: "bold, founder-to-founder, raw honesty, real talk"
+  pacing: "fast, direct, no wasted words"
+  perspective: "first person, talking to a fellow founder at a late-night coworking session"
+  word_count: "150 to 180"
+  hooks:
+    - id: fundraise_truth
+      template: "VCs won't tell you this about {topic}. But I will."
+      when: "fundraising insight or VC dynamics"
+    - id: pivot_story
+      template: "We were 3 months from dying. Then {topic} changed everything."
+      when: "pivot or survival story"
+    - id: unit_economics
+      template: "If your {topic} numbers look like this, you have a problem."
+      when: "unit economics or financial reality check"
+    - id: growth_play
+      template: "This growth tactic for {topic} costs nothing and actually works."
+      when: "scrappy growth strategy"
+    - id: founder_mistake
+      template: "I wasted 6 months on {topic}. Here's what I should have done."
+      when: "founder mistake or hard lesson"
+  cta_variants:
+    - "Follow for founder real talk."
+    - "Building something? Drop your startup below."
+    - "Save this before your next investor meeting."
+  forbidden_phrases:
+    - "like and subscribe"
+    - "smash that bell"
+    - "what's up guys"
+    - "disrupt"
+    - "synergy"
+  structure:
+    opening: "Start with a hard truth or a moment of founder pain. Be raw."
+    middle: "Share the specific lesson with numbers or a real timeline. No theory."
+    closing: "End with the one thing you wish someone told you sooner, then CTA."
+
+visuals:
+  style: "gritty, authentic, startup-aesthetic"
+  mood: "intense, real, scrappy"
+  color_palette: ["#F72585", "#7209B7", "#3A0CA3", "#F0F0F0"]
+  subjects:
+    prefer:
+      - "founders working late in minimal offices"
+      - "whiteboards filled with strategy and numbers"
+      - "pitch decks and investor meetings"
+    avoid:
+      - "luxury lifestyle or flashy cars"
+      - "polished corporate boardrooms"
+  prompt_suffix: "photorealistic, cinematic lighting, high quality"
+
+voice:
+  pace: "moderate, approximately 150 words per minute"
+  energy: "intense, direct, passionate"
+  suggested_voices:
+    edge_tts:
+      en: "en-IN-PrabhatNeural"
+      en_voices:
+        - "en-IN-PrabhatNeural"
+        - "en-IN-NeerjaExpressiveNeural"
+
+captions:
+  highlight_color: "#F72585"
+  words_per_group: 4
+
+music:
+  mood: "intense, building, cinematic"
+  energy: "medium-high"
+  tags: ["cinematic", "intense", "startup"]
+  duck_volume_speech: 0.10
+  duck_volume_gap: 0.20
+
+thumbnail:
+  style: "raw text, dark or gradient background, one bold statement"
+  accent_color: "#F72585"
+  max_words: 4
+
+discovery:
+  reddit:
+    subreddits: ["startups", "Entrepreneur", "SaaS", "venturecapital", "smallbusiness", "indiehackers", "YCombinator"]

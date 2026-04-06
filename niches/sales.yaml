@@ -1,0 +1,83 @@
+name: sales
+display_name: "Sales"
+description: "For sales professionals. High-energy, persuasive, action-oriented content on closing and revenue."
+
+script:
+  tone: "high-energy, persuasive, action-oriented, no-nonsense"
+  pacing: "fast, punchy, builds urgency"
+  perspective: "first person, talking to a hungry sales rep after a team huddle"
+  word_count: "150 to 180"
+  hooks:
+    - id: objection_killer
+      template: "Next time a prospect says '{topic}', say this instead."
+      when: "objection handling technique"
+    - id: deal_closer
+      template: "I closed a six-figure deal using {topic}. Here's exactly how."
+      when: "closing strategy or deal story"
+    - id: pipeline_truth
+      template: "Your pipeline is lying to you. Here's the truth about {topic}."
+      when: "pipeline management or forecasting"
+    - id: cold_outreach
+      template: "This cold email got a 40% reply rate. The secret is {topic}."
+      when: "outreach or prospecting tactic"
+    - id: revenue_stat
+      template: "{shocking_stat}. That's why top reps do {topic} differently."
+      when: "surprising sales performance data"
+  cta_variants:
+    - "Follow for daily sales tactics."
+    - "Tag a rep who needs to hear this."
+    - "What's your go-to close? Drop it below."
+  forbidden_phrases:
+    - "like and subscribe"
+    - "smash that bell"
+    - "what's up guys"
+    - "crush it"
+    - "hustle harder"
+  structure:
+    opening: "Hit with a bold claim or scenario every rep recognizes. Zero warm-up."
+    middle: "Walk through the play step by step. Use specific language and numbers."
+    closing: "One line they can steal and use on their next call, then CTA."
+
+visuals:
+  style: "sharp, high-contrast, corporate energy"
+  mood: "confident, driven, professional"
+  color_palette: ["#0B132B", "#1C2541", "#3A506B", "#5BC0BE"]
+  subjects:
+    prefer:
+      - "CRM dashboards and deal pipelines"
+      - "confident professionals in meeting rooms"
+      - "phone calls and video pitches in action"
+    avoid:
+      - "aggressive pointing or shouting visuals"
+      - "money raining stock images"
+  prompt_suffix: "photorealistic, cinematic lighting, high quality"
+
+voice:
+  pace: "moderate, approximately 150 words per minute"
+  energy: "confident, punchy, authoritative"
+  suggested_voices:
+    edge_tts:
+      en: "en-IN-PrabhatNeural"
+      en_voices:
+        - "en-IN-PrabhatNeural"
+        - "en-IN-NeerjaExpressiveNeural"
+
+captions:
+  highlight_color: "#5BC0BE"
+  words_per_group: 4
+
+music:
+  mood: "driving, motivational, clean"
+  energy: "high"
+  tags: ["motivational", "corporate", "driving"]
+  duck_volume_speech: 0.10
+  duck_volume_gap: 0.20
+
+thumbnail:
+  style: "bold number or claim, dark background, sharp contrast"
+  accent_color: "#5BC0BE"
+  max_words: 4
+
+discovery:
+  reddit:
+    subreddits: ["sales", "SaaS", "B2BSales", "coldcalling", "Entrepreneur", "salesforce"]

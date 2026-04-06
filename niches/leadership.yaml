@@ -1,0 +1,83 @@
+name: leadership
+display_name: "Leadership & CXO"
+description: "For senior leaders and CXOs. Authoritative, strategic, big-picture content on running organizations."
+
+script:
+  tone: "authoritative, strategic, big-picture, composed"
+  pacing: "deliberate, each sentence carries weight, confident pauses"
+  perspective: "first person, talking to a peer executive over a private dinner"
+  word_count: "150 to 180"
+  hooks:
+    - id: market_shift
+      template: "The {topic} landscape just shifted. Most leaders won't see it coming."
+      when: "industry disruption or market trend"
+    - id: board_decision
+      template: "I had to make this call on {topic}. Here's how I thought through it."
+      when: "high-stakes strategic decision"
+    - id: culture_truth
+      template: "Your culture isn't what's on the wall. It's what happens when {topic}."
+      when: "organizational culture insight"
+    - id: strategy_frame
+      template: "Every CEO should ask this one question about {topic}."
+      when: "strategic framework or mental model"
+    - id: leadership_stat
+      template: "{shocking_stat}. That number should keep every leader up at night."
+      when: "surprising leadership or industry data"
+  cta_variants:
+    - "Follow for strategic leadership insights."
+    - "What's the hardest call you've made? Share below."
+    - "Save this for your next board prep."
+  forbidden_phrases:
+    - "like and subscribe"
+    - "smash that bell"
+    - "what's up guys"
+    - "thought leader"
+    - "paradigm shift"
+  structure:
+    opening: "Open with a strategic observation or hard-won executive insight. Command attention."
+    middle: "Unpack the thinking with a real decision, tradeoff, or market signal. Be specific."
+    closing: "Close with a principle or question that reframes the viewer's thinking, then CTA."
+
+visuals:
+  style: "premium, editorial, understated elegance"
+  mood: "commanding, thoughtful, authoritative"
+  color_palette: ["#1B1B2F", "#162447", "#E8E8E8", "#C9A227"]
+  subjects:
+    prefer:
+      - "executive offices with city skyline views"
+      - "boardroom strategy sessions"
+      - "market charts and global business visuals"
+    avoid:
+      - "motivational quote posters"
+      - "generic team huddle stock photos"
+  prompt_suffix: "photorealistic, cinematic lighting, high quality"
+
+voice:
+  pace: "moderate, approximately 150 words per minute"
+  energy: "composed, authoritative, gravitas"
+  suggested_voices:
+    edge_tts:
+      en: "en-IN-PrabhatNeural"
+      en_voices:
+        - "en-IN-PrabhatNeural"
+        - "en-IN-NeerjaExpressiveNeural"
+
+captions:
+  highlight_color: "#C9A227"
+  words_per_group: 4
+
+music:
+  mood: "sophisticated, cinematic, understated"
+  energy: "medium"
+  tags: ["cinematic", "sophisticated", "executive"]
+  duck_volume_speech: 0.10
+  duck_volume_gap: 0.20
+
+thumbnail:
+  style: "premium typography, dark background, gold accent, one sharp visual"
+  accent_color: "#C9A227"
+  max_words: 4
+
+discovery:
+  reddit:
+    subreddits: ["business", "strategy", "CEO", "leadership", "economy", "consulting", "MBA"]

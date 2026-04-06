@@ -1,0 +1,83 @@
+name: marketing
+display_name: "Marketing"
+description: "For marketing professionals. Data-meets-storytelling with a creative, punchy edge."
+
+script:
+  tone: "creative, data-driven, punchy, storytelling-meets-strategy"
+  pacing: "fast-paced, snappy transitions, builds momentum"
+  perspective: "first person, talking to a fellow marketer over coffee"
+  word_count: "150 to 180"
+  hooks:
+    - id: campaign_insight
+      template: "This one campaign trick drove 10x ROI. Let me break down {topic}."
+      when: "campaign strategy or tactic"
+    - id: growth_hack
+      template: "Everyone's sleeping on {topic}. Here's why it's a goldmine."
+      when: "underused growth channel or tactic"
+    - id: brand_fail
+      template: "A brand just made a massive mistake with {topic}. Don't repeat it."
+      when: "branding lesson or cautionary tale"
+    - id: data_surprise
+      template: "{shocking_stat}. That single number rewrites your marketing playbook."
+      when: "surprising marketing data or benchmark"
+    - id: trend_alert
+      template: "The {topic} trend is exploding right now. Here's how to ride it."
+      when: "emerging marketing trend"
+  cta_variants:
+    - "Follow for more marketing plays."
+    - "Save this before your competitor sees it."
+    - "Drop your biggest marketing win in the comments."
+  forbidden_phrases:
+    - "like and subscribe"
+    - "smash that bell"
+    - "what's up guys"
+    - "without further ado"
+    - "game changer"
+  structure:
+    opening: "Lead with a bold stat or counterintuitive claim. No intros."
+    middle: "Walk through the strategy with one real example. Data first, story second."
+    closing: "One actionable takeaway the viewer can use today, then CTA."
+
+visuals:
+  style: "bold, modern, high-contrast with data overlays"
+  mood: "energetic, aspirational, creative"
+  color_palette: ["#FF6B35", "#1A1A2E", "#F7F7F7", "#004E89"]
+  subjects:
+    prefer:
+      - "marketing dashboards and analytics screens"
+      - "creative brainstorming sessions"
+      - "social media interfaces and campaign visuals"
+    avoid:
+      - "generic stock handshakes"
+      - "clipart funnels"
+  prompt_suffix: "photorealistic, cinematic lighting, high quality"
+
+voice:
+  pace: "moderate, approximately 150 words per minute"
+  energy: "upbeat, confident, conversational"
+  suggested_voices:
+    edge_tts:
+      en: "en-IN-PrabhatNeural"
+      en_voices:
+        - "en-IN-PrabhatNeural"
+        - "en-IN-NeerjaExpressiveNeural"
+
+captions:
+  highlight_color: "#FF6B35"
+  words_per_group: 4
+
+music:
+  mood: "upbeat, creative, modern"
+  energy: "medium-high"
+  tags: ["upbeat", "corporate-modern", "creative"]
+  duck_volume_speech: 0.10
+  duck_volume_gap: 0.20
+
+thumbnail:
+  style: "bold stat or claim, gradient background, one visual element"
+  accent_color: "#FF6B35"
+  max_words: 4
+
+discovery:
+  reddit:
+    subreddits: ["marketing", "digital_marketing", "SEO", "socialmedia", "GrowthHacking", "content_marketing", "PPC"]

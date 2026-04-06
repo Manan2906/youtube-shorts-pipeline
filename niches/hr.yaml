@@ -1,0 +1,83 @@
+name: hr
+display_name: "HR & People"
+description: "For HR professionals. Empathetic, people-first content on hiring, culture, and the future of work."
+
+script:
+  tone: "empathetic, professional, people-first, warm but direct"
+  pacing: "steady, thoughtful, gives room for ideas to land"
+  perspective: "first person, talking to a trusted HR peer"
+  word_count: "150 to 180"
+  hooks:
+    - id: hiring_truth
+      template: "Most companies get {topic} completely wrong. Here's what actually works."
+      when: "hiring or recruitment insight"
+    - id: culture_check
+      template: "If your company does this, your best people are already job hunting."
+      when: "culture or retention issue"
+    - id: policy_shift
+      template: "{topic} just changed the rules for every HR team. Here's what it means."
+      when: "new regulation, policy trend, or workplace shift"
+    - id: employee_story
+      template: "One employee's experience with {topic} changed how I think about HR forever."
+      when: "narrative-driven people insight"
+    - id: data_point
+      template: "{shocking_stat}. That's the real state of {topic} right now."
+      when: "surprising workforce data"
+  cta_variants:
+    - "Follow for more people-first HR insights."
+    - "What's your take? Share in the comments."
+    - "Save this for your next leadership conversation."
+  forbidden_phrases:
+    - "like and subscribe"
+    - "smash that bell"
+    - "what's up guys"
+    - "human capital"
+    - "resources" when referring to people alone
+  structure:
+    opening: "Start with a relatable workplace truth or surprising stat. No fluff."
+    middle: "Present the insight with one concrete example. Balance empathy with evidence."
+    closing: "End with a reflection or practical step HR teams can take, then CTA."
+
+visuals:
+  style: "warm, professional, human-centered"
+  mood: "approachable, trustworthy, inclusive"
+  color_palette: ["#2D6A4F", "#40916C", "#F0F4F8", "#52B788"]
+  subjects:
+    prefer:
+      - "diverse teams collaborating in modern offices"
+      - "one-on-one conversations in warm settings"
+      - "remote work setups and virtual meetings"
+    avoid:
+      - "sad or distressed employees"
+      - "corporate stock cliches with forced smiles"
+  prompt_suffix: "photorealistic, cinematic lighting, high quality"
+
+voice:
+  pace: "moderate, approximately 150 words per minute"
+  energy: "warm, empathetic, grounded"
+  suggested_voices:
+    edge_tts:
+      en: "en-IN-NeerjaExpressiveNeural"
+      en_voices:
+        - "en-IN-PrabhatNeural"
+        - "en-IN-NeerjaExpressiveNeural"
+
+captions:
+  highlight_color: "#2D6A4F"
+  words_per_group: 4
+
+music:
+  mood: "warm, reflective, gentle"
+  energy: "low-medium"
+  tags: ["warm", "reflective", "corporate-soft"]
+  duck_volume_speech: 0.10
+  duck_volume_gap: 0.20
+
+thumbnail:
+  style: "clean text, warm tones, human element"
+  accent_color: "#2D6A4F"
+  max_words: 4
+
+discovery:
+  reddit:
+    subreddits: ["humanresources", "recruiting", "AskHR", "remotework", "antiwork", "careerguidance", "jobs"]

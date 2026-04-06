@@ -1,0 +1,83 @@
+name: product
+display_name: "Product Management"
+description: "For product managers. Analytical yet accessible, user-centric content on building great products."
+
+script:
+  tone: "analytical, accessible, user-centric, curious"
+  pacing: "measured, logical progression, each point earns the next"
+  perspective: "first person, talking to a PM during a post-sprint retro"
+  word_count: "150 to 180"
+  hooks:
+    - id: user_insight
+      template: "Your users are telling you something about {topic}. You're just not listening."
+      when: "user research or feedback insight"
+    - id: framework
+      template: "The framework behind {topic} that top PMs swear by. 60 seconds."
+      when: "prioritization or decision framework"
+    - id: launch_lesson
+      template: "We launched {topic} and it flopped. Here's what we missed."
+      when: "launch retrospective or product failure lesson"
+    - id: metric_truth
+      template: "{shocking_stat}. That metric changed our entire product roadmap."
+      when: "surprising product or usage data"
+    - id: build_vs_buy
+      template: "Should you build or buy {topic}? Here's how to actually decide."
+      when: "product strategy or tradeoff decision"
+  cta_variants:
+    - "Follow for more product thinking."
+    - "What would you prioritize? Comment below."
+    - "Save this for your next roadmap review."
+  forbidden_phrases:
+    - "like and subscribe"
+    - "smash that bell"
+    - "what's up guys"
+    - "move the needle"
+    - "circle back"
+  structure:
+    opening: "Open with a user problem or counterintuitive product truth. No preamble."
+    middle: "Break down the thinking with a clear framework or real example. Show tradeoffs."
+    closing: "Leave with one decision-making principle they can apply, then CTA."
+
+visuals:
+  style: "clean, structured, whiteboard-aesthetic"
+  mood: "thoughtful, focused, systematic"
+  color_palette: ["#6C63FF", "#2F2E41", "#F5F5FA", "#FF6584"]
+  subjects:
+    prefer:
+      - "product roadmap boards and sticky notes"
+      - "user journey maps and wireframes"
+      - "analytics dashboards with clean design"
+    avoid:
+      - "generic tech stock photos"
+      - "random code on screens"
+  prompt_suffix: "photorealistic, cinematic lighting, high quality"
+
+voice:
+  pace: "moderate, approximately 150 words per minute"
+  energy: "thoughtful, clear, confident"
+  suggested_voices:
+    edge_tts:
+      en: "en-IN-NeerjaExpressiveNeural"
+      en_voices:
+        - "en-IN-PrabhatNeural"
+        - "en-IN-NeerjaExpressiveNeural"
+
+captions:
+  highlight_color: "#6C63FF"
+  words_per_group: 4
+
+music:
+  mood: "focused, clean, minimal"
+  energy: "low-medium"
+  tags: ["minimal", "focus", "tech"]
+  duck_volume_speech: 0.10
+  duck_volume_gap: 0.20
+
+thumbnail:
+  style: "clean layout, framework visual or key question, purple accent"
+  accent_color: "#6C63FF"
+  max_words: 4
+
+discovery:
+  reddit:
+    subreddits: ["ProductManagement", "prodmgmt", "userexperience", "startups", "SaaS", "analytics"]

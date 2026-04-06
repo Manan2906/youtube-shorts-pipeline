@@ -4,10 +4,63 @@ import { useState, useEffect, useRef } from "react";
 
 const API = "http://localhost:8003";
 
-const NICHES = [
-  "finance", "tech", "gaming", "science", "education", "fitness",
-  "cooking", "travel", "entertainment", "politics", "sports",
-  "fashion", "motivation", "comedy", "true_crime", "general",
+const NICHE_GROUPS = [
+  {
+    label: "Job Roles",
+    niches: [
+      { id: "marketing", name: "Marketing" },
+      { id: "hr", name: "HR & People" },
+      { id: "sales", name: "Sales" },
+      { id: "product", name: "Product Management" },
+      { id: "startup", name: "Startups & Founders" },
+      { id: "leadership", name: "Leadership & CXO" },
+    ],
+  },
+  {
+    label: "Industries",
+    niches: [
+      { id: "finance", name: "Finance & Markets" },
+      { id: "tech", name: "Tech & AI" },
+      { id: "science", name: "Science" },
+      { id: "education", name: "Education" },
+      { id: "politics", name: "Politics" },
+    ],
+  },
+  {
+    label: "Lifestyle",
+    niches: [
+      { id: "fitness", name: "Fitness" },
+      { id: "cooking", name: "Cooking" },
+      { id: "travel", name: "Travel" },
+      { id: "entertainment", name: "Entertainment" },
+      { id: "sports", name: "Sports" },
+      { id: "fashion", name: "Fashion" },
+      { id: "gaming", name: "Gaming" },
+      { id: "motivation", name: "Motivation" },
+      { id: "comedy", name: "Comedy" },
+      { id: "true_crime", name: "True Crime" },
+      { id: "general", name: "General" },
+    ],
+  },
+];
+
+const TONES = [
+  { value: "", label: "Auto (from niche)" },
+  { value: "professional", label: "Professional" },
+  { value: "casual", label: "Casual & Friendly" },
+  { value: "witty", label: "Witty & Sarcastic" },
+  { value: "dramatic", label: "Dramatic & Intense" },
+  { value: "educational", label: "Educational & Clear" },
+  { value: "inspirational", label: "Inspirational" },
+];
+
+const MOODS = [
+  { value: "", label: "Auto (from niche)" },
+  { value: "serious", label: "Serious" },
+  { value: "fun", label: "Fun & Light" },
+  { value: "urgent", label: "Urgent & Breaking" },
+  { value: "thoughtful", label: "Thoughtful & Deep" },
+  { value: "provocative", label: "Provocative & Bold" },
 ];
 
 const LANGUAGES = [
@@ -41,9 +94,11 @@ type JobStatus = {
 
 export default function Home() {
   const [topic, setTopic] = useState("");
-  const [niche, setNiche] = useState("finance");
+  const [niche, setNiche] = useState("marketing");
   const [voice, setVoice] = useState(0);
   const [lang, setLang] = useState("en");
+  const [tone, setTone] = useState("");
+  const [mood, setMood] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [provider, setProvider] = useState("claude_cli");
   const [context, setContext] = useState("");
@@ -70,7 +125,18 @@ export default function Home() {
       const res = await fetch(`${API}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: topic.trim(), niche, language: lang, voice_index: voice, provider, context }),
+        body: JSON.stringify({
+          topic: topic.trim(),
+          niche,
+          language: lang,
+          voice_index: voice,
+          provider,
+          context: [
+            context,
+            tone ? `Tone: ${tone}` : "",
+            mood ? `Mood: ${mood}` : "",
+          ].filter(Boolean).join(". "),
+        }),
       });
       const data = await res.json();
       setJobId(data.job_id);
@@ -129,37 +195,57 @@ export default function Home() {
                 onFocus={e => e.target.style.borderColor = '#5e6ad2'}
                 onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
 
-              {/* Niche + Lang */}
+              {/* Niche (grouped) */}
+              <div className="mt-4">
+                <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#8a8f98' }}>Niche / Audience</label>
+                <select value={niche} onChange={e => setNiche(e.target.value)} className={input} style={inputStyle}>
+                  {NICHE_GROUPS.map(group => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.niches.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tone + Mood */}
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <div>
-                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#8a8f98' }}>Niche</label>
-                  <select value={niche} onChange={e => setNiche(e.target.value)} className={input} style={inputStyle}>
-                    {NICHES.map(n => <option key={n} value={n}>{n.charAt(0).toUpperCase() + n.slice(1).replace("_", " ")}</option>)}
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#8a8f98' }}>Tone</label>
+                  <select value={tone} onChange={e => setTone(e.target.value)} className={input} style={inputStyle}>
+                    {TONES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#8a8f98' }}>Mood</label>
+                  <select value={mood} onChange={e => setMood(e.target.value)} className={input} style={inputStyle}>
+                    {MOODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Language + Voice row */}
+              <div className="grid grid-cols-2 gap-3 mt-4">
                 <div>
                   <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#8a8f98' }}>Language</label>
                   <select value={lang} onChange={e => setLang(e.target.value)} className={input} style={inputStyle}>
                     {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
                   </select>
                 </div>
-              </div>
-
-              {/* Voice */}
-              <div className="mt-4">
-                <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#8a8f98' }}>Voice</label>
-                <div className="flex gap-2">
-                  {[{ idx: 0, label: "Male" }, { idx: 1, label: "Female" }].map(v => (
-                    <button key={v.idx} onClick={() => setVoice(v.idx)}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer"
-                      style={{
-                        background: voice === v.idx ? '#5e6ad2' : '#0f1011',
-                        color: voice === v.idx ? '#fff' : '#8a8f98',
-                        border: `1px solid ${voice === v.idx ? '#5e6ad2' : 'rgba(255,255,255,0.08)'}`,
-                      }}>
-                      {v.label}
-                    </button>
-                  ))}
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#8a8f98' }}>Voice</label>
+                  <div className="flex gap-2">
+                    {[{ idx: 0, label: "Male" }, { idx: 1, label: "Female" }].map(v => (
+                      <button key={v.idx} onClick={() => setVoice(v.idx)}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer"
+                        style={{
+                          background: voice === v.idx ? '#5e6ad2' : '#0f1011',
+                          color: voice === v.idx ? '#fff' : '#8a8f98',
+                          border: `1px solid ${voice === v.idx ? '#5e6ad2' : 'rgba(255,255,255,0.08)'}`,
+                        }}>
+                        {v.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

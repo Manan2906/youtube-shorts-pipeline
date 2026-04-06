@@ -1,16 +1,82 @@
-# Verticals v3
+# Verticals v3 (Enhanced Fork)
 
 **The open source AI content engine with built in niche intelligence.**
 
 > Topic in. Published Short out. Any niche. ~$0.11 per video.
 >
-> **[Try it in Google Colab](link) · [Web UI](#web-ui) · [CLI Quickstart](#cli-quickstart) · [Hosted Version](https://verticals.gg)**
+> Forked from [rushindrasinha/youtube-shorts-pipeline](https://github.com/rushindrasinha/youtube-shorts-pipeline) with significant enhancements.
 
 ```
-python -m verticals run --topic "Sam Altman just mass-fired 200 safety researchers" --niche tech
+python -m verticals run --news "Strait of Hormuz crisis impact on Indian oil and rupee" --niche finance --provider claude_cli --voice edge
 ```
 
-That one command researches the topic, writes a hook driven script tuned to tech YouTube, generates cinematic b roll, records a natural voiceover, burns in animated captions, adds mood matched background music, generates a thumbnail, and uploads it to YouTube. ~90 seconds of video, ~3 minutes of wall time, ~$0.11 in API costs.
+That one command researches the topic, writes a hook driven script tuned to finance YouTube, downloads relevant Pexels stock video clips, records a natural voiceover with Indian English accent, burns in spell-checked animated captions, and assembles a professional short. ~60 seconds of video, ~3 minutes of wall time.
+
+## What's New in This Fork
+
+### Pexels Stock Video Integration
+- **Real video b-roll** instead of AI-generated images or solid colors
+- Downloads HD portrait (1080x1920) video clips from Pexels free API
+- LLM generates targeted 2-3 word search terms for each clip, ensuring footage matches what's being spoken
+- Fallback chain: Gemini Imagen -> Pexels Video -> Pexels Image -> solid color
+- Free Pexels API key required (get one at https://www.pexels.com/api/new/)
+
+### Speech-Synced Video Transitions
+- Video clips are **timed to match spoken content** using Whisper word timestamps
+- Each clip duration varies based on how long that section of the script is spoken
+- No more equal-split boring clips that stay on screen for 25 seconds
+
+### Spell-Checked Captions
+- Captions use the **original script text** instead of Whisper's transcription
+- Whisper's word-level timestamps are kept for precise timing
+- Eliminates misspellings of proper nouns (e.g. "Hormuz" no longer becomes "Hormones")
+
+### Indian English Voices + Round-Robin
+- `en-IN-PrabhatNeural` (male) and `en-IN-NeerjaExpressiveNeural` (female) Indian English voices
+- Round-robin voice selection via `--voice-index` flag (0 = male, 1 = female)
+- 1.25x speaking speed for punchier delivery
+
+### 7 B-Roll Clips Per Video
+- Increased from 3 to 7 clips for faster visual pacing (~8-10 seconds each)
+- Each clip has a unique Pexels search term matching the script content
+
+### Windows Compatibility Fixes
+- Fixed ffmpeg ASS subtitle path escaping on Windows
+- Fixed Claude CLI subprocess git-bash detection
+- Fixed UTF-8 encoding for non-ASCII characters
+- Added ffprobe fallback using ffmpeg for audio duration detection
+- Baseline H264 profile + faststart flag for universal player compatibility (Windows Media Player, VLC, etc.)
+- Forced 30fps on all clips to prevent stuttering from mixed frame rates
+
+### Claude Max (CLI) Support
+- Works with Claude Max subscription via `--provider claude_cli` (no API key needed)
+- Pipes prompts via stdin to bypass Windows command-line length limits
+
+## Quick Start
+
+```bash
+# Clone this fork
+git clone https://github.com/Manan2906/youtube-shorts-pipeline.git
+cd youtube-shorts-pipeline
+
+# Install dependencies (Python 3.10+)
+pip install -r requirements.txt
+
+# Add your Pexels API key (free at https://www.pexels.com/api/new/)
+mkdir -p ~/.verticals
+echo '{"PEXELS_API_KEY": "your-key-here"}' > ~/.verticals/config.json
+
+# Generate a video (using Claude Max subscription)
+python -m verticals run \
+  --news "Your topic here" \
+  --niche finance \
+  --provider claude_cli \
+  --voice edge
+
+# Or with round-robin voices:
+python -m verticals produce --draft ~/.verticals/drafts/<id>.json --voice edge --voice-index 0  # male
+python -m verticals produce --draft ~/.verticals/drafts/<id>.json --voice edge --voice-index 1  # female
+```
 
 ## What Changed in v3
 

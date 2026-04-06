@@ -102,16 +102,29 @@ RULES:
 Output JSON exactly:
 {{
   "script": "...",
-  "broll_prompts": ["prompt for frame 1", "prompt for frame 2", "prompt for frame 3"],
+  "broll_prompts": ["prompt 1", "prompt 2", "prompt 3", "prompt 4", "prompt 5", "prompt 6", "prompt 7"],
+  "pexels_search_terms": ["search 1", "search 2", "search 3", "search 4", "search 5", "search 6", "search 7"],
   "youtube_title": "...",
   "youtube_description": "...",
   "youtube_tags": "tag1,tag2,tag3",
   "instagram_caption": "...",
   "tiktok_caption": "...",
   "thumbnail_prompt": "..."
-}}"""
+}}
+
+CRITICAL rules for broll_prompts and pexels_search_terms:
+- You MUST provide exactly 7 prompts and 7 matching search terms (one for every ~8-10 seconds of video)
+- Each pexels_search_terms entry must be 2-3 simple English words for stock footage search
+- Search terms must DIRECTLY match what is being SPOKEN in that section of the script
+- Examples: "oil tanker ocean", "stock market trading", "indian rupee currency", "gold bars investment"
+- Each search term should be DIFFERENT from the others — variety keeps the video engaging
+- Do NOT use abstract/artistic words — use concrete, searchable nouns"""
 
     raw = call_llm(prompt, provider=provider)
+
+    # Debug: show what LLM returned
+    import sys
+    print(f"  [DEBUG] LLM returned {len(raw)} chars: {raw[:200]!r}", file=sys.stderr)
 
     # Parse JSON from response
     if raw.startswith("```"):
@@ -139,9 +152,14 @@ Output JSON exactly:
             draft[field] = str(draft[field])
     if "broll_prompts" in draft:
         if not isinstance(draft["broll_prompts"], list):
-            draft["broll_prompts"] = ["Cinematic landscape"] * 3
+            draft["broll_prompts"] = ["Cinematic landscape"] * 7
         else:
-            draft["broll_prompts"] = [str(p) for p in draft["broll_prompts"][:3]]
+            draft["broll_prompts"] = [str(p) for p in draft["broll_prompts"]]
+    if "pexels_search_terms" in draft:
+        if not isinstance(draft["pexels_search_terms"], list):
+            draft["pexels_search_terms"] = []
+        else:
+            draft["pexels_search_terms"] = [str(t) for t in draft["pexels_search_terms"]]
 
     # Append visual prompt suffix to b-roll prompts
     suffix = get_visual_prompt_suffix(profile)

@@ -60,7 +60,7 @@ def cmd_produce(args):
     import shutil
 
     draft_path = Path(args.draft)
-    draft = json.loads(draft_path.read_text())
+    draft = json.loads(draft_path.read_text(encoding="utf-8"))
     job_id = draft["job_id"]
     lang = args.lang
     state = PipelineState(draft)
@@ -83,7 +83,11 @@ def cmd_produce(args):
 
     # B-roll
     if force or not state.is_done("broll"):
-        frames = generate_broll(draft.get("broll_prompts", ["Cinematic landscape"] * 3), work_dir)
+        frames = generate_broll(
+            draft.get("broll_prompts", ["Cinematic landscape"] * 3),
+            work_dir,
+            search_terms=draft.get("pexels_search_terms"),
+        )
         state.complete_stage("broll", {"frames": [str(f) for f in frames]})
     else:
         log("Skipping b-roll (already done)")
@@ -91,11 +95,18 @@ def cmd_produce(args):
 
     # Voiceover (niche-aware voice selection)
     if force or not state.is_done("voiceover"):
+        vi = getattr(args, "voice_index", 0)
+        # Niche YAML uses "edge_tts" as key, CLI uses "edge"
+        niche_provider = (tts_provider or "edge_tts")
+        if niche_provider == "edge":
+            niche_provider = "edge_tts"
         voice_config = get_voice_config(
             profile,
-            provider=tts_provider or "edge_tts",
+            provider=niche_provider,
             lang=lang,
+            voice_index=vi,
         )
+        log(f"Voice selected: {voice_config.get('voice_id', 'default')} (index={vi})")
         vo_path = generate_voiceover(
             script, work_dir, lang,
             provider=tts_provider,
@@ -113,6 +124,7 @@ def cmd_produce(args):
             vo_path, work_dir, lang,
             highlight_color=caption_config.get("highlight_color", "#FFFF00"),
             words_per_group=caption_config.get("words_per_group", 4),
+            original_script=script,
         )
         state.complete_stage("captions", {
             "srt_path": str(captions_result.get("srt_path", "")),
@@ -155,6 +167,7 @@ def cmd_produce(args):
             ass_path=captions_result.get("ass_path"),
             music_path=music_result.get("track_path"),
             duck_filter=music_result.get("duck_filter"),
+            word_timestamps=captions_result.get("words"),
         )
         state.complete_stage("assemble", {"video_path": str(video_path)})
     else:
@@ -182,7 +195,7 @@ def cmd_upload(args):
     import json
 
     draft_path = Path(args.draft)
-    draft = json.loads(draft_path.read_text())
+    draft = json.loads(draft_path.read_text(encoding="utf-8"))
     lang = args.lang
     state = PipelineState(draft)
     force = getattr(args, "force", False)
@@ -234,6 +247,7 @@ def cmd_run(args):
         script = None
         force = False
         voice = getattr(args, "voice", None)
+        voice_index = getattr(args, "voice_index", 0)
 
     video_path = cmd_produce(ProduceArgs())
 
@@ -314,6 +328,7 @@ def main():
     p_produce.add_argument("--voice", default=None, help="TTS: edge, elevenlabs, say")
     p_produce.add_argument("--script", default=None, help="Override script text")
     p_produce.add_argument("--force", action="store_true", help="Redo all stages")
+    p_produce.add_argument("--voice-index", type=int, default=0, dest="voice_index", help="Voice index for round-robin (0=male, 1=female)")
 
     # upload
     p_upload = sub.add_parser("upload", help="Upload to YouTube")

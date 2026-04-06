@@ -21,7 +21,9 @@ from .retry import with_retry
 
 # Default Edge TTS voices per language
 EDGE_VOICES = {
-    "en": "en-US-GuyNeural",
+    "en": "en-IN-PrabhatNeural",      # Indian English male (default for Indian audience)
+    "en-us": "en-US-GuyNeural",        # US English male
+    "en-in": "en-IN-PrabhatNeural",    # Indian English male
     "hi": "hi-IN-MadhurNeural",
     "es": "es-MX-JorgeNeural",
     "pt": "pt-BR-AntonioNeural",
@@ -32,10 +34,10 @@ EDGE_VOICES = {
 }
 
 
-async def _edge_tts_generate(text: str, voice: str, output_path: Path):
+async def _edge_tts_generate(text: str, voice: str, output_path: Path, rate: str = "+25%"):
     """Generate audio via edge-tts (async)."""
     import edge_tts
-    communicate = edge_tts.Communicate(text, voice)
+    communicate = edge_tts.Communicate(text, voice, rate=rate)
     await communicate.save(str(output_path))
 
 

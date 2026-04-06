@@ -156,8 +156,13 @@ def get_visual_subjects(profile: dict) -> dict:
     }
 
 
-def get_voice_config(profile: dict, provider: str = "edge_tts", lang: str = "en") -> dict:
-    """Get voice configuration for the specified provider and language."""
+def get_voice_config(profile: dict, provider: str = "edge_tts", lang: str = "en", voice_index: int = 0) -> dict:
+    """Get voice configuration for the specified provider and language.
+
+    Args:
+        voice_index: For round-robin voice selection. If the niche profile
+            defines en_voices as a list, this index selects which voice to use.
+    """
     voice = profile.get("voice", {})
     suggested = voice.get("suggested_voices", {})
 
@@ -169,7 +174,12 @@ def get_voice_config(profile: dict, provider: str = "edge_tts", lang: str = "en"
 
     provider_voices = suggested.get(provider, {})
     if isinstance(provider_voices, dict):
-        config["voice_id"] = provider_voices.get(lang, provider_voices.get("en", ""))
+        # Check for round-robin voice list (e.g. en_voices: [voice1, voice2])
+        voice_list = provider_voices.get(f"{lang}_voices", [])
+        if voice_list and isinstance(voice_list, list):
+            config["voice_id"] = voice_list[voice_index % len(voice_list)]
+        else:
+            config["voice_id"] = provider_voices.get(lang, provider_voices.get("en", ""))
         # ElevenLabs specific settings
         if provider == "elevenlabs":
             config["voice_id"] = provider_voices.get("voice_id", "")

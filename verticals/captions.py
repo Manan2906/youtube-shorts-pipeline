@@ -159,18 +159,58 @@ def _srt_time(seconds: float) -> str:
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
+def _align_script_to_timestamps(script: str, whisper_words: list[dict]) -> list[dict]:
+    """Replace Whisper's transcription with original script words, keeping timestamps.
+
+    Whisper often misspells proper nouns (e.g. 'Hormuz' → 'Hormones').
+    This aligns the original script words onto Whisper's timing data.
+    """
+    import re
+    # Tokenize original script into words (strip punctuation for matching)
+    script_tokens = re.findall(r"[A-Za-z0-9'']+[.,!?;:]*|[.,!?;:]", script)
+    # Keep only actual words (not standalone punctuation)
+    script_words = [t for t in script_tokens if re.search(r'[A-Za-z0-9]', t)]
+
+    if not whisper_words or not script_words:
+        return whisper_words
+
+    aligned = []
+    s_idx = 0
+    for w_entry in whisper_words:
+        if s_idx < len(script_words):
+            aligned.append({
+                "word": script_words[s_idx],
+                "start": w_entry["start"],
+                "end": w_entry["end"],
+            })
+            s_idx += 1
+        else:
+            # More Whisper words than script words — keep Whisper's text
+            aligned.append(w_entry)
+
+    log(f"Aligned {s_idx}/{len(script_words)} script words to {len(whisper_words)} timestamps.")
+    return aligned
+
+
 def generate_captions(
     audio_path: Path,
     work_dir: Path,
     lang: str = "en",
     highlight_color: str = "#FFFF00",
     words_per_group: int = 4,
+    original_script: str = "",
 ) -> dict:
     """Generate captions: ASS (for burn-in) + SRT (for YouTube upload).
 
     Returns dict with keys: srt_path, ass_path, words (for music ducking).
+    If original_script is provided, uses its text instead of Whisper's
+    transcription (fixes misspellings) while keeping Whisper's timing.
     """
     words = _whisper_word_timestamps(audio_path, lang)
+
+    # Fix spelling: use original script words with Whisper timing
+    if original_script and words:
+        words = _align_script_to_timestamps(original_script, words)
 
     result = {"words": words}
 

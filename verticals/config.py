@@ -93,6 +93,10 @@ def get_newsapi_key() -> str:
     return _get_key("NEWSAPI_KEY")
 
 
+def get_pexels_key() -> str:
+    return _get_key("PEXELS_API_KEY")
+
+
 # ─────────────────────────────────────────────────────
 # Niche → default topic source configuration
 # ─────────────────────────────────────────────────────
@@ -154,16 +158,31 @@ def call_claude_cli(prompt: str, model: str = "claude-sonnet-4-6", max_tokens: i
 
     # Strip CLAUDECODE env var to allow running from within a Claude Code session
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+    # Ensure git-bash path is set on Windows for Claude CLI (must use backslash paths)
+    if os.name == "nt" and "CLAUDE_CODE_GIT_BASH_PATH" not in env:
+        for candidate in [
+            os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "Git", "bin", "bash.exe"),
+            os.path.join("C:\\", "Program Files", "Git", "bin", "bash.exe"),
+        ]:
+            if os.path.isfile(candidate):
+                env["CLAUDE_CODE_GIT_BASH_PATH"] = candidate
+                break
 
+    import tempfile
+    clean_dir = tempfile.gettempdir()
     r = subprocess.run(
-        [claude_path, "--print", "--model", model, "--max-turns", "3", "-p", prompt],
+        [claude_path, "--print", "--model", model, "--max-turns", "1", "-p", "-"],
         capture_output=True,
-        text=True,
-        timeout=120,
+        timeout=180,
         env=env,
+        cwd=clean_dir,
+        input=prompt.encode("utf-8"),
     )
+    # Decode output as UTF-8 (Windows default cp1252 can't handle all chars)
+    r.stdout = r.stdout.decode("utf-8", errors="replace") if r.stdout else ""
+    r.stderr = r.stderr.decode("utf-8", errors="replace") if r.stderr else ""
     if r.returncode != 0:
-        raise RuntimeError(f"claude CLI failed: {r.stderr[:300]}")
+        raise RuntimeError(f"claude CLI failed (rc={r.returncode}): stderr={r.stderr[:300]} stdout={r.stdout[:200]}")
     output = r.stdout.strip()
     # Claude CLI may append "Error: Reached max turns" — strip it
     if output.endswith("Error: Reached max turns (3)"):

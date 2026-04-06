@@ -94,16 +94,17 @@ LIVE RESEARCH (use ONLY names/facts from here — never fabricate):
 RULES:
 - Anti-hallucination: only use names, scores, events found in research above
 - Follow the TONE, PACING, and HOOK PATTERNS from the niche profile above
-- Pick the most appropriate hook pattern for this specific topic
+- NEVER start with a number or statistic. Vary your opening — use a bold claim, a question, a surprising contrast, a "what if", or jump straight into the story. EVERY video must have a DIFFERENT opening style.
+- Make it engaging, punchy, a bit witty. If the topic involves people, add personality. If it involves conflict, lean into the drama. This is social media, not a textbook.
 - Use one of the CTA OPTIONS at the end
 - Never use any of the NEVER USE phrases
-- B-roll prompts must follow the visual guidance (style, mood, preferred subjects)
 
 Output JSON exactly:
 {{
   "script": "...",
   "broll_prompts": ["prompt 1", "prompt 2", "prompt 3", "prompt 4", "prompt 5", "prompt 6", "prompt 7"],
   "pexels_search_terms": ["search 1", "search 2", "search 3", "search 4", "search 5", "search 6", "search 7"],
+  "giphy_search_terms": ["giphy 1", "giphy 2", "giphy 3", "giphy 4", "giphy 5", "giphy 6", "giphy 7"],
   "youtube_title": "...",
   "youtube_description": "...",
   "youtube_tags": "tag1,tag2,tag3",
@@ -112,13 +113,20 @@ Output JSON exactly:
   "thumbnail_prompt": "..."
 }}
 
-CRITICAL rules for broll_prompts and pexels_search_terms:
-- You MUST provide exactly 7 prompts and 7 matching search terms (one for every ~8-10 seconds of video)
-- Each pexels_search_terms entry must be 2-3 simple English words for stock footage search
-- Search terms must DIRECTLY match what is being SPOKEN in that section of the script
-- Examples: "oil tanker ocean", "stock market trading", "indian rupee currency", "gold bars investment"
-- Each search term should be DIFFERENT from the others — variety keeps the video engaging
-- Do NOT use abstract/artistic words — use concrete, searchable nouns"""
+CRITICAL rules for search terms:
+
+pexels_search_terms (stock footage — landscapes, objects, abstract):
+- 2-3 words for stock footage. Examples: "oil tanker ocean", "stock market trading"
+- Good for: scenery, objects, buildings, nature, abstract concepts
+
+giphy_search_terms (memes, GIFs, people, reactions — THIS IS PRIMARY):
+- 2-3 words optimized for Giphy meme/GIF search
+- MUST include actual names of people, events, or meme references when the topic involves them
+- Examples: "trump handshake", "putin stare", "mind blown meme", "stock market crash meme", "modi speech"
+- For each segment, think: "what meme or reaction GIF matches what's being said RIGHT NOW?"
+- Use specific person names, pop culture references, and reaction words
+
+Both lists MUST have exactly 7 entries, each DIFFERENT, each matching what's being spoken in that part of the script."""
 
     raw = call_llm(prompt, provider=provider)
 
@@ -160,6 +168,11 @@ CRITICAL rules for broll_prompts and pexels_search_terms:
             draft["pexels_search_terms"] = []
         else:
             draft["pexels_search_terms"] = [str(t) for t in draft["pexels_search_terms"]]
+    if "giphy_search_terms" in draft:
+        if not isinstance(draft["giphy_search_terms"], list):
+            draft["giphy_search_terms"] = []
+        else:
+            draft["giphy_search_terms"] = [str(t) for t in draft["giphy_search_terms"]]
 
     # Append visual prompt suffix to b-roll prompts
     suffix = get_visual_prompt_suffix(profile)

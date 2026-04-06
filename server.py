@@ -106,6 +106,12 @@ def _run_pipeline(job_id: str, req: GenerateRequest):
     try:
         job = jobs[job_id]
 
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+
+        # ── Snapshot existing drafts BEFORE running, so we can find the NEW one ──
+        existing_drafts = set(DRAFTS_DIR.glob("*.json")) if DRAFTS_DIR.exists() else set()
+
         # Stage 1: Draft
         job.update(status="running", stage="Researching & writing script...", progress=10)
         cmd = [
@@ -120,23 +126,38 @@ def _run_pipeline(job_id: str, req: GenerateRequest):
         if req.context:
             cmd += ["--context", req.context]
 
-        env = os.environ.copy()
-        env["PYTHONIOENCODING"] = "utf-8"
-
         r = subprocess.run(
             cmd, capture_output=True, text=True, timeout=300,
             cwd=str(VERTICALS_DIR), env=env,
             encoding="utf-8", errors="replace",
         )
 
-        # Find the draft file (most recent)
-        drafts = sorted(DRAFTS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
-        if not drafts:
-            raise RuntimeError(f"No draft created. stderr: {r.stderr[-500:]}")
+        # Find only the NEW draft file (not from a previous run)
+        current_drafts = set(DRAFTS_DIR.glob("*.json")) if DRAFTS_DIR.exists() else set()
+        new_drafts = current_drafts - existing_drafts
+        if new_drafts:
+            draft_path = max(new_drafts, key=lambda p: p.stat().st_mtime)
+        else:
+            # Fallback: most recent by mtime (in case set diff missed it)
+            all_drafts = sorted(DRAFTS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if not all_drafts:
+                raise RuntimeError(f"No draft created. Output: {r.stdout[-300:]} {r.stderr[-300:]}")
+            draft_path = all_drafts[0]
 
-        draft_path = drafts[0]
         draft = json.loads(draft_path.read_text(encoding="utf-8"))
+        draft_job_id = draft.get("job_id", "")
         job.update(stage="Script ready! Generating video...", progress=30, draft=draft)
+
+        # ── Clean old work directory to prevent cached/stale output ──
+        import shutil
+        work_dir = MEDIA_DIR / f"work_{draft_job_id}_{req.language}"
+        if work_dir.exists():
+            shutil.rmtree(work_dir, ignore_errors=True)
+
+        # Also remove old video if it exists (force fresh generation)
+        old_video = MEDIA_DIR / f"verticals_{draft_job_id}_{req.language}.mp4"
+        if old_video.exists():
+            old_video.unlink(missing_ok=True)
 
         # Stage 2: Produce
         job.update(stage="Downloading video clips...", progress=40)
@@ -175,7 +196,6 @@ def _run_pipeline(job_id: str, req: GenerateRequest):
         process.wait(timeout=600)
 
         # Find the video
-        draft_job_id = draft.get("job_id", "")
         video_path = MEDIA_DIR / f"verticals_{draft_job_id}_{req.language}.mp4"
         if not video_path.exists():
             # Search for most recent mp4
@@ -193,5 +213,6 @@ def _run_pipeline(job_id: str, req: GenerateRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    print("\n  Verticals API server starting on http://localhost:8000\n")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    print(f"\n  Verticals API server starting on http://localhost:{port}\n")
+    uvicorn.run(app, host="0.0.0.0", port=port)

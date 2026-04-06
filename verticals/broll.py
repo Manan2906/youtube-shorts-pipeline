@@ -1,6 +1,7 @@
-"""B-roll generation: Gemini Imagen, Pexels video/image, Ken Burns animation."""
+"""B-roll generation: Giphy memes/GIFs, Pexels video/image, Gemini Imagen, Ken Burns animation."""
 
 import base64
+import random
 from pathlib import Path
 
 import requests
@@ -9,6 +10,9 @@ from PIL import Image
 from .config import VIDEO_WIDTH, VIDEO_HEIGHT, get_gemini_key, get_pexels_key, extract_keywords, run_cmd
 from .log import log
 from .retry import with_retry
+
+# Giphy public API key (free, 100 req/hour — sufficient for video generation)
+GIPHY_API_KEY = "GlVGYHkr3WSBnllca54iNt0yFbjz7L65"
 
 
 # ─────────────────────────────────────────────────────
@@ -160,6 +164,61 @@ def _download_pexels_image(query: str, output_path: Path, api_key: str) -> Path:
 
 
 # ─────────────────────────────────────────────────────
+# Giphy — memes, reaction GIFs, topical content
+# ─────────────────────────────────────────────────────
+@with_retry(max_retries=2, base_delay=1.0)
+def _download_giphy_gif(query: str, output_path: Path, offset: int = 0) -> Path:
+    """Search Giphy for memes/GIFs and download as MP4.
+
+    Giphy is ideal for: people, memes, reactions, pop culture, politics,
+    celebrities, trending topics — everything Pexels can't do.
+    """
+    url = "https://api.giphy.com/v1/gifs/search"
+    r = requests.get(
+        url,
+        params={
+            "api_key": GIPHY_API_KEY,
+            "q": query,
+            "limit": 10,
+            "offset": offset,
+            "rating": "pg-13",
+            "lang": "en",
+        },
+        timeout=15,
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"Giphy API {r.status_code}: {r.text[:200]}")
+
+    data = r.json()
+    gifs = data.get("data", [])
+    if not gifs:
+        raise RuntimeError(f"No Giphy results for: {query}")
+
+    # Pick a random GIF from top results for variety
+    gif = random.choice(gifs[:min(5, len(gifs))])
+
+    # Prefer MP4 (smaller, better quality than GIF)
+    mp4_url = (
+        gif.get("images", {}).get("original_mp4", {}).get("mp4")
+        or gif.get("images", {}).get("looping", {}).get("mp4")
+        or gif.get("images", {}).get("downsized", {}).get("url", "")
+    )
+
+    if not mp4_url:
+        # Fallback to GIF URL and convert
+        mp4_url = gif.get("images", {}).get("original", {}).get("url", "")
+
+    if not mp4_url:
+        raise RuntimeError(f"No downloadable media for Giphy result: {gif.get('title', '')}")
+
+    log(f"  Downloading Giphy: \"{gif.get('title', '')[:40]}\"...")
+    resp = requests.get(mp4_url, timeout=30)
+    resp.raise_for_status()
+    output_path.write_bytes(resp.content)
+    return output_path
+
+
+# ─────────────────────────────────────────────────────
 # Fallback + portrait crop
 # ─────────────────────────────────────────────────────
 def _fallback_frame(i: int, out_dir: Path) -> Path:
@@ -188,40 +247,67 @@ def _crop_to_portrait(img_path: Path):
 # ─────────────────────────────────────────────────────
 # Main entry: generate b-roll with full fallback chain
 # ─────────────────────────────────────────────────────
-def generate_broll(prompts: list, out_dir: Path, search_terms: list | None = None) -> list[Path]:
-    """Generate b-roll frames with fallback chain:
-       Gemini Imagen → Pexels video → Pexels image → solid color.
+def generate_broll(prompts: list, out_dir: Path, search_terms: list | None = None, giphy_terms: list | None = None) -> list[Path]:
+    """Generate b-roll with fallback chain:
+       Giphy memes/GIFs → Pexels video → Pexels image → Gemini → solid color.
+
+    Giphy is tried FIRST because it has topical content (people, memes,
+    politics, pop culture) that Pexels stock footage completely lacks.
 
     Args:
         prompts: Detailed b-roll prompts (for Gemini image generation).
         out_dir: Directory to save frames.
-        search_terms: Optional list of 2-3 word Pexels search queries (from LLM).
-                      If not provided, falls back to keyword extraction from prompts.
+        search_terms: LLM-generated Pexels search queries (stock footage).
+        giphy_terms: LLM-generated Giphy search queries (memes, people, reactions).
     """
     gemini_key = get_gemini_key()
     pexels_key = get_pexels_key()
 
-    sources = []
-    if gemini_key:
-        sources.append("Gemini")
+    sources = ["Giphy (memes/GIFs)"]
     if pexels_key:
-        sources.append("Pexels Video/Image")
+        sources.append("Pexels Video")
+    if gemini_key:
+        sources.append("Gemini AI")
     sources.append("fallback")
-    log(f"B-roll sources available: {', '.join(sources)}")
+    log(f"B-roll sources: {', '.join(sources)}")
 
     frames = []
+    giphy_offset = 0  # avoid duplicate GIFs across frames
+
     for i, prompt in enumerate(prompts):
-        # Use LLM-provided search terms if available, else extract from prompt
-        if search_terms and i < len(search_terms):
-            search_query = search_terms[i]
-        else:
-            search_query = _prompt_to_search_query(prompt)
+        # Get search queries for this frame
+        pexels_q = search_terms[i] if search_terms and i < len(search_terms) else _prompt_to_search_query(prompt)
+        giphy_q = giphy_terms[i] if giphy_terms and i < len(giphy_terms) else pexels_q
         acquired = False
 
-        # ── 1. Try Gemini Imagen ──
+        # ── 1. Try Giphy (memes, reactions, topical — BEST for people/politics) ──
+        if not acquired:
+            out_path = out_dir / f"broll_{i}.mp4"
+            log(f"Searching Giphy for: \"{giphy_q}\"...")
+            try:
+                _download_giphy_gif(giphy_q, out_path, offset=i * 3)
+                frames.append(out_path)
+                acquired = True
+                log(f"  Giphy clip saved: {out_path.name}")
+            except Exception as e:
+                log(f"  Giphy failed: {e}")
+
+        # ── 2. Try Pexels Video (stock footage — good for abstract/scenic) ──
+        if pexels_key and not acquired:
+            out_path = out_dir / f"broll_{i}.mp4"
+            log(f"Searching Pexels for: \"{pexels_q}\"...")
+            try:
+                _download_pexels_video(pexels_q, out_path, pexels_key)
+                frames.append(out_path)
+                acquired = True
+                log(f"  Pexels video saved: {out_path.name}")
+            except Exception as e:
+                log(f"  Pexels video failed: {e}")
+
+        # ── 3. Try Gemini Imagen (AI generation) ──
         if gemini_key and not acquired:
             out_path = out_dir / f"broll_{i}.png"
-            log(f"Generating b-roll frame {i+1}/3 via Gemini Imagen...")
+            log(f"Generating via Gemini Imagen...")
             try:
                 _generate_image_gemini(prompt, out_path, gemini_key)
                 _crop_to_portrait(out_path)
@@ -230,32 +316,18 @@ def generate_broll(prompts: list, out_dir: Path, search_terms: list | None = Non
             except Exception as e:
                 log(f"  Gemini failed: {e}")
 
-        # ── 2. Try Pexels Video (most engaging) ──
-        if pexels_key and not acquired:
-            out_path = out_dir / f"broll_{i}.mp4"
-            log(f"Searching Pexels videos for: \"{search_query}\"...")
-            try:
-                _download_pexels_video(search_query, out_path, pexels_key)
-                frames.append(out_path)
-                acquired = True
-                log(f"  Pexels video saved: {out_path.name}")
-            except Exception as e:
-                log(f"  Pexels video failed: {e}")
-
-        # ── 3. Try Pexels Image ──
+        # ── 4. Try Pexels Image (static photo fallback) ──
         if pexels_key and not acquired:
             out_path = out_dir / f"broll_{i}.png"
-            log(f"Searching Pexels images for: \"{search_query}\"...")
             try:
-                _download_pexels_image(search_query, out_path, pexels_key)
+                _download_pexels_image(pexels_q, out_path, pexels_key)
                 _crop_to_portrait(out_path)
                 frames.append(out_path)
                 acquired = True
-                log(f"  Pexels image saved: {out_path.name}")
             except Exception as e:
                 log(f"  Pexels image failed: {e}")
 
-        # ── 4. Solid color fallback ──
+        # ── 5. Solid color fallback ──
         if not acquired:
             log(f"  Frame {i+1}: all providers failed — using solid color fallback")
             frames.append(_fallback_frame(i, out_dir))
